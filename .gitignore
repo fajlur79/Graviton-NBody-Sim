@@ -1,0 +1,17 @@
+*.o
+*.obj
+
+graviton
+
+#Gprofiling data
+gmon.out
+
+#Perf profiling data (Linux)
+perf.data
+perf.data.old
+
+
+#Vim/Neovim swap files
+*.swp
+*.swo
+*~
