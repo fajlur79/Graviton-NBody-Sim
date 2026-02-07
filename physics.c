@@ -1,42 +1,36 @@
 #include "types.h"
 #include "math_utils.h"
 #include <math.h>
+#include "barnes_hut.h"
+#include <stdlib.h>
+
 
 void compute_forces(Particle* p, SimConfig* conf){
 	int N = conf->particle_count;
 	float G = conf->G;
 	float soft = conf->softening;
-	float softSq = soft * soft;
+	float theta = 0.5f;
 	
 	for (int i = 0; i < N; i++){
 		p[i].acc = (Vec2){0.0f, 0.0f};
 	}
 
+	float root_size = (conf->width > conf->height) ? conf->width : conf->height;
+	QuadNode* root = bh_create_node(0, 0, root_size);
+	
+
 	for (int i = 0; i < N; i++){
-		for (int j = i+1; j < N; j++){	
-			Vec2 r_vec = vec2_sub(p[j].pos, p[i].pos);
-			
-			float distSq = vec2_lenSq(r_vec);
-		        
-			float effective_distSq = distSq + softSq;
-			float dist = sqrtf(effective_distSq);
-
-			float f = (G * p[i].mass * p[j].mass) / effective_distSq;
-
-			float f_scale = f / dist;
-			
-			Vec2 force = vec2_scale(r_vec, f_scale);
-
-			if (!p[i].is_fixed){
-				p[i].acc.x += force.x / p[i].mass;
-				p[j].acc.y += force.y / p[j].mass;
-			}
-			if (!p[j].is_fixed){
-				p[j].acc.x -= force.x / p[j].mass;
-                		p[j].acc.y -= force.y / p[j].mass;
-			}
-		}
+	    if (p[i].pos.x >= 0 && p[i].pos.x <= root_size &&
+	        p[i].pos.y >= 0 && p[i].pos.y <= root_size){
+		bh_insert(root, &p[i]);
+	    }		
 	}
+	bh_compute_mass_distribution(root);
+	
+	for (int i = 0; i < N; i++){
+	    bh_calculate_force(&p[i], root, G, theta, soft);
+	}
+	bh_free_tree(root);
 }
 
 void integrate(Particle* p, SimConfig* conf){
@@ -64,12 +58,12 @@ void integrate(Particle* p, SimConfig* conf){
 
 		if (p[i].pos.y < 0){
 			p[i].pos.y = 0;
-			p[i].vel.y = -0.8;
+			p[i].vel.y *= -0.8;
 		}
 
 		if (p[i].pos.y > conf->height){
 			p[i].pos.y = conf->height;
-			p[i].vel.y = -0.8;
+			p[i].vel.y *= -0.8;
 		}
 	}
 }

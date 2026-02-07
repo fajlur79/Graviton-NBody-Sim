@@ -3,12 +3,6 @@
 #include <stdio.h>
 
 
-void init_renderer(SimConfig* conf) {
-	InitWindow(conf->width, conf->height, "Graviton: N-Body Simulation");
-
-	SetTargetFPS(60);
-}
-
 void render_frame(Particle* p, SimConfig* conf){
 	BeginDrawing();
 
@@ -27,10 +21,11 @@ void render_frame(Particle* p, SimConfig* conf){
 
 	DrawFPS(10,10);
 	DrawText("Press R to Reset", 10, 40, 20, RAYWHITE);
-
+	DrawText("Press Q or ESC to Quit", 10, 70, 20, BLUE );
+	
 	char count_text[32];
 	sprintf(count_text, "Particles: %d", N);
-	DrawText(count_text, 10, 70, 20, GRAY);
+	DrawText(count_text, 10, 100, 20, GRAY);
 
 	EndDrawing();
 }

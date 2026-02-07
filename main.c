@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
 void init_renderer(SimConfig* conf);
 void render_frame(Particle* p, SimConfig* conf);
 void close_renderer();
@@ -11,48 +10,63 @@ void init_galaxy(Particle* p, SimConfig* conf);
 void compute_forces(Particle* p, SimConfig* conf);
 void integrate(Particle* p, SimConfig* conf);
 
-int main (){
-	SimConfig conf = {
-		.G = 1000.0f,
-		.dt = 0.16f,
-		.particle_count = 1500,
-		.softening = 10.0f,
-		.width = 1200.0f,
-		.height = 800.0f
-	};
+int main() {
+    InitWindow(800, 600, "Graviton: N-Body Simulation");
+    
+    int monitor = GetCurrentMonitor();
+    int screenWidth = GetMonitorWidth(monitor);
+    int screenHeight = GetMonitorHeight(monitor);
+    
+    SetWindowSize(screenWidth, screenHeight);
+    ToggleFullscreen(); 
 
-	size_t size = conf.particle_count * sizeof(Particle);
-	Particle* particles = (Particle*)malloc(size);
+    SimConfig conf = {
+        .G = 1000.0f,
+        .dt = 0.01f,
+        .particle_count = 1000,
+        .softening = 10.0f,
+        .width = (float)screenWidth,
+        .height = (float)screenHeight
+    };
 
-	if (particles == NULL){
-		fprintf(stderr, "CRITICAL: Failed to allocate memory.\n");
-		return 1;
-	}
+    SetTargetFPS(60);
 
-	init_galaxy(particles, &conf);
-	init_renderer(&conf);
+    size_t size = conf.particle_count * sizeof(Particle);
+    Particle* particles = (Particle*)malloc(size);
 
-	while (!WindowShouldClose()){
-		if (IsKeyPressed(KEY_R)){
-			init_galaxy(particles, &conf);
-		}
+    if (particles == NULL) {
+        fprintf(stderr, "CRITICAL: Failed to allocate memory.\n");
+        return 1;
+    }
 
-		int substeps = 4;
-		float sub_dt = conf.dt / substeps;
-		
-		SimConfig sub_conf = conf;
-		sub_conf.dt = sub_dt;
+    init_galaxy(particles, &conf);
 
-		for (int s = 0; s < substeps; s++){
-			compute_forces(particles, &sub_conf);
-			integrate(particles, &sub_conf);
-		}
+    while (!WindowShouldClose()) {
+        
+        if (IsKeyPressed(KEY_Q) || IsKeyPressed(KEY_ESCAPE)) {
+            break;
+        }
+        
+        if (IsKeyPressed(KEY_R)) {
+            init_galaxy(particles, &conf);
+        }
 
-		render_frame(particles, &conf);
-	}
+        int substeps = 4;
+        float sub_dt = conf.dt / substeps;
+        
+        SimConfig sub_conf = conf;
+        sub_conf.dt = sub_dt;
 
-	close_renderer();
-	free(particles);
+        for (int s = 0; s < substeps; s++) {
+            compute_forces(particles, &sub_conf);
+            integrate(particles, &sub_conf);
+        }
 
-	return 0;
+        render_frame(particles, &conf);
+    }
+
+    CloseWindow();
+    free(particles);
+
+    return 0;
 }
