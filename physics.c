@@ -9,11 +9,12 @@ void compute_forces(Particle* p, SimConfig* conf){
 	int N = conf->particle_count;
 	float G = conf->G;
 	float soft = conf->softening;
-	float theta = 0.5f;
+	float theta = 1.0f;
 	
 	for (int i = 0; i < N; i++){
 		p[i].acc = (Vec2){0.0f, 0.0f};
 	}
+	bh_reset_pool();
 
 	float root_size = (conf->width > conf->height) ? conf->width : conf->height;
 	QuadNode* root = bh_create_node(0, 0, root_size);
@@ -26,11 +27,11 @@ void compute_forces(Particle* p, SimConfig* conf){
 	    }		
 	}
 	bh_compute_mass_distribution(root);
-	
+	#pragma omp parallel for schedule(dynamic)
 	for (int i = 0; i < N; i++){
 	    bh_calculate_force(&p[i], root, G, theta, soft);
 	}
-	bh_free_tree(root);
+	//bh_free_tree(root);
 }
 
 void integrate(Particle* p, SimConfig* conf){

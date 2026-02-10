@@ -34,6 +34,7 @@ void bh_compute_mass_distribution(QuadNode* node);
 
 void bh_calculate_force(Particle* p, QuadNode* root, float G, float theta, float softening);
 
-void bh_free_tree(QuadNode* node);
+//void bh_free_tree(QuadNode* node);
+void bh_reset_pool();
 
 #endif

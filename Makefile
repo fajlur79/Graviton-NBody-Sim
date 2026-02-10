@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -O3 -std=c99
-LIBS = -lraylib -lm -lpthread -ldl -lrt -lX11
+CFLAGS = -Wall -Wextra -O3 -std=c99 -fopenmp -march=native
+LIBS = -lraylib -lm -lpthread -ldl -lrt -lX11 -fopenmp
 
 SRC = main.c physics.c render.c init.c barnes_hut.c
 OBJ = $(SRC:.c=.o)

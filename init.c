@@ -31,13 +31,17 @@ void init_galaxy(Particle* p, SimConfig* conf){
 	p[0].pos.x = cx;
 	p[0].pos.y = cy;
 	p[0].vel = (Vec2){0,0};
-	p[0].mass = 10000.0f;
-	p[0].radius = 15.0f;
+	p[0].mass = 50000.0f;
+	p[0].radius = 50.0f;
 	p[0].color = 0xFFA500FF;
 	p[0].is_fixed = true;
 
 	for (int i = 1; i < conf->particle_count; i++){
-		float dist = rand_float(50.0f, (conf->height /2.0f) - 10.0f);
+		float min_dist = 100.0f;
+		float max_dist = (conf->height / 2.0f) -10.0f;
+
+		if (max_dist <= min_dist) max_dist = min_dist + 50.0f;
+		float dist = rand_float(min_dist, max_dist);
 
 		float angle = rand_float(0.0f, 2.0f * M_PI);
 
@@ -51,7 +55,8 @@ void init_galaxy(Particle* p, SimConfig* conf){
 
 		p[i].acc = (Vec2){0,0};
 		p[i].mass = rand_float(0.5f, 2.0f);
-		p[i].radius = (p[i].mass < 1.0f) ? 1.0f : 2.0f;
+		//p[i].radius = (p[i].mass < 1.0f) ? 1.0f : 2.0f;
+		p[i].radius = rand_float(2.0f, 6.0f);
 
 		if (p[i].mass > 1.5f) p[i].color = 0x8888FFFF;
 		else p[i].color = 0xFF8888FF;
