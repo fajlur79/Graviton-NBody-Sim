@@ -1,8 +1,8 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -O3 -std=c99 -fopenmp -march=native
-LIBS = -lraylib -lm -lpthread -ldl -lrt -lX11 -fopenmp
+CFLAGS = -Wall -Wextra -O3 -std=c99 -fopenmp -ffast-math -march=native
+LIBS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -fopenmp
 
-SRC = main.c physics.c render.c init.c barnes_hut.c
+SRC = main.c physics.c render.c init.c
 OBJ = $(SRC:.c=.o)
 EXEC = graviton
 
