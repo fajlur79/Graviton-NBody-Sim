@@ -2,51 +2,52 @@
 #include "raylib.h"
 #include "rlgl.h"
 #include <stdio.h>
+#include "raymath.h"
 
-#ifndef RL_QUADS
-#define RL_QUADS 0x0007
-#endif
-
-void render_frame(Particle* p, SimConfig* conf, Texture2D tex){ 
+void render_frame(Particle* p, SimConfig* conf, Texture2D tex, Camera3D* cam, float alpha){ 
     BeginDrawing();
-    ClearBackground((Color){10, 10, 15, 255});
+    ClearBackground(BLACK);
 
-    DrawCircleGradient((int)p[0].pos.x, (int)p[0].pos.y, p[0].radius * 3.0f,
-			(Color){255,100,0,40}, (Color){0,0,0,0});
-    DrawCircleGradient((int)p[0].pos.x, (int)p[0].pos.y, p[0].radius, ORANGE, GOLD);
+    BeginMode3D(*cam);
+    rlSetClipPlanes(0.1, 10000.0);
+    
+    Vector3 sunPos = Vector3Lerp(
+        (Vector3){p[0].px_prev, p[0].py_prev, p[0].pz_prev},
+        (Vector3){p[0].x, p[0].y, p[0].z},
+        alpha
+    );
+
+    DrawSphere(sunPos, p[0].radius, ORANGE);
 
     int N = conf->particle_count;
-
-    rlSetTexture(tex.id); 
-
-    rlBegin(RL_QUADS);
+    
+    rlSetBlendMode(BLEND_ALPHA);
 
     for (int i = 1; i < N; i++) {
-        rlCheckRenderBatchLimit(4); 
+        Vector3 prev = {p[i].px_prev, p[i].py_prev, p[i].pz_prev};
+        Vector3 curr = {p[i].x, p[i].y, p[i].z};
+        Vector3 center = Vector3Lerp(prev, curr, alpha);
 
         Color c = GetColor(p[i].color);
-        rlColor4ub(c.r, c.g, c.b, c.a);
-
-        float r = p[i].radius; 
         
-        if (r < 2.0f) r = 4.0f; 
-
-        float x = p[i].pos.x;
-        float y = p[i].pos.y;
-
-        rlTexCoord2f(0.0f, 0.0f); rlVertex2f(x - r, y - r); // Top-Left
-        rlTexCoord2f(0.0f, 1.0f); rlVertex2f(x - r, y + r); // Bottom-Left
-        rlTexCoord2f(1.0f, 1.0f); rlVertex2f(x + r, y + r); // Bottom-Right
-        rlTexCoord2f(1.0f, 0.0f); rlVertex2f(x + r, y - r); // Top-Right
+        float size = p[i].radius * 3.0f;
+        
+        DrawBillboard(*cam, tex, center, size, c);
     }
-
-    rlEnd();
     
-    rlSetTexture(0); 
-
-    DrawFPS(10,10);
-    DrawText("Particles: 15000", 10, 40, 20, GRAY);
+    rlSetBlendMode(BLEND_ALPHA);
     
+    EndMode3D();
+
+    DrawFPS(GetScreenWidth() - 100,10);
+    
+    char buffer[64];
+    sprintf(buffer, "Particles: %d", N);
+    DrawText(buffer, 10, 10, 20, GREEN);
+    
+    DrawText("PRESS R TO RESET Galaxy",10, 40,  20, SKYBLUE);
+    DrawText("PRESS Q OR ESC TO QUIT",10, 70, 20, GRAY);
+
     EndDrawing();
 }
 

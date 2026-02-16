@@ -1,69 +1,61 @@
 #include "types.h"
 #include <stdlib.h>
 #include <math.h>
-#include <time.h>
+#include "raymath.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
 #endif
 
 float rand_float(float min, float max){
-	return min + (max-min)* ((float)rand() / RAND_MAX);
-}
-
-void init_random(Particle* p, SimConfig* conf){
-	for (int i = 0; i < conf -> particle_count; i++){
-		p[i].pos.x = rand_float(0, conf->width);
-		p[i].pos.y = rand_float(0, conf->height);
-		p[i].vel.x = rand_float(-10, 10);
-		p[i].vel.y = rand_float(-10, 10);
-		p[i].acc = (Vec2){0,0};
-		p[i].mass = rand_float(1.0f, 5.0f);
-		p[i].color = 0xFFFFFFFF;
-		p[i].is_fixed = false;
-	}
+    return min + (max-min)* ((float)rand() / RAND_MAX);
 }
 
 void init_galaxy(Particle* p, SimConfig* conf){
-	float cx = conf->width / 2.0f;
-	float cy = conf->height / 2.0f;
+    Vector3 center = {0, 0, 0};
 
-	p[0].pos.x = cx;
-	p[0].pos.y = cy;
-	p[0].vel = (Vec2){0,0};
-	p[0].mass = 50000.0f;
-	p[0].radius = 50.0f;
-	p[0].color = 0xFFA500FF;
-	p[0].is_fixed = true;
+    p[0].x = center.x; p[0].y = center.y; p[0].z = center.z;
+    p[0].pad1 = 0; 
 
-	for (int i = 1; i < conf->particle_count; i++){
-		float min_dist = 100.0f;
-		float max_dist = (conf->height / 2.0f) -10.0f;
+    p[0].px_prev = p[0].x; p[0].py_prev = p[0].y; p[0].pz_prev = p[0].z;
+    p[0].pad4 = 0;
 
-		if (max_dist <= min_dist) max_dist = min_dist + 50.0f;
-		float dist = rand_float(min_dist, max_dist);
+    p[0].vx = 0; p[0].vy = 0; p[0].vz = 0; p[0].pad2 = 0;
+    p[0].ax = 0; p[0].ay = 0; p[0].az = 0; p[0].pad3 = 0;
 
-		float angle = rand_float(0.0f, 2.0f * M_PI);
+    p[0].mass = 50000.0f;
+    p[0].radius = 40.0f;
+    p[0].color = 0xFFA500FF;
+    p[0].is_fixed = 1; 
 
-		p[i].pos.x = cx + cosf(angle) * dist;
-		p[i].pos.y = cy + sinf(angle) * dist;
+    for (int i = 1; i < conf->particle_count; i++){
+        
+        float dist = rand_float(150.0f, conf->bounds_size * 0.8f);
+        float angle = rand_float(0.0f, 2.0f * M_PI);
+        float height = rand_float(-50.0f, 50.0f);
 
-		float velocity = sqrtf((conf->G * p[0].mass) / dist);
+        p[i].x = center.x + cosf(angle) * dist;
+        p[i].y = center.y + sinf(angle) * dist;
+        p[i].z = center.z + height;
+        p[i].pad1 = 0;
 
-		p[i].vel.x = -sinf(angle) * velocity;
-		p[i].vel.y = cosf(angle) * velocity;
+        p[i].px_prev = p[i].x;
+        p[i].py_prev = p[i].y;
+        p[i].pz_prev = p[i].z;
+        p[i].pad4 = 0;
 
-		p[i].acc = (Vec2){0,0};
-		p[i].mass = rand_float(0.5f, 2.0f);
-		//p[i].radius = (p[i].mass < 1.0f) ? 1.0f : 2.0f;
-		p[i].radius = rand_float(2.0f, 6.0f);
+        float velocity = sqrtf((conf->G * p[0].mass) / dist);
+        p[i].vx = -sinf(angle) * velocity;
+        p[i].vy = cosf(angle) * velocity;
+        p[i].vz = 0;
+        p[i].pad2 = 0;
 
-		if (p[i].mass > 1.5f) p[i].color = 0x8888FFFF;
-		else p[i].color = 0xFF8888FF;
+        p[i].ax = 0; p[i].ay = 0; p[i].az = 0;
+        p[i].pad3 = 0;
 
-		p[i].is_fixed = false;
-	}
+        p[i].mass = rand_float(0.5f, 2.0f);
+        p[i].radius = rand_float(2.0f, 6.0f);
+        p[i].color = (i % 2 == 0) ? 0x8888FFFF: 0xFF8888FF;
+        p[i].is_fixed = 0; 
+    }
 }
-
-
-
